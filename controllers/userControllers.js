@@ -122,4 +122,31 @@ const updateEmail = async (req, res) => {
 
 }
 
-module.exports = {signUpUser, logInUser, getUserName, updateEmail}
+const updatePassword = async (req, res) => {
+  const {password, newPassword} = req.body;
+
+  try {
+    const user = await User.updatePassword(password, newPassword, req.userId);
+
+    return res
+              .status(200)
+              .json({
+                status: 'success',
+                data: {
+                  _id: user._id,
+                  name: user.name,
+                  email: user.email,
+                  token: createToken(req.userId)
+                }
+              })
+  } catch(err) {
+    return res
+              .status(400)
+              .json({
+                status: 'fail',
+                message: err.message
+              })
+  }
+}
+
+module.exports = {signUpUser, logInUser, getUserName, updateEmail, updatePassword}

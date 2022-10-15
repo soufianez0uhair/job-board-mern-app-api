@@ -98,4 +98,33 @@ userSchema.statics.updateEmail = async function(email, password, userId) {
     return user
 }
 
+userSchema.statics.updatePassword = async function(password, newPassword, userId) {
+    if(!password || !newPassword) {
+        throw Error('Please fill in all the fields!');
+    }
+
+    const oldUser = await this.findById(userId);
+
+    const match = await bcrypt.compare(password, oldUser.password);
+
+    if(!match) {
+        throw Error('Password is incorrect!');
+    }
+
+    if(!validator.isStrongPassword(newPassword)) {
+        throw Error("Password isn't strong enough!");
+    }
+
+    if(password === newPassword) {
+        throw Error('Password is already in use!');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(newPassword, salt);
+
+    const newUser = await this.findOneAndUpdate({_id: userId}, {password: hash}, {new: true});
+    
+    return newUser;
+}
+
 module.exports = mongoose.model('User', userSchema)
